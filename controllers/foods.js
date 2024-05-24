@@ -29,7 +29,7 @@ router.get('/:itemId/edit', async (req, res) => {
         const userId = req.session.user._id
         const currentUser = await User.findById(userId)
         const itemIdx = req.params.itemId
-        let pantryItem = currentUser.pantry[itemIdx]
+        const pantryItem = currentUser.pantry.id(req.params.itemId)
         res.render('foods/edit.ejs', {
             pantryItem: pantryItem,
             itemIdx: itemIdx,
@@ -37,7 +37,7 @@ router.get('/:itemId/edit', async (req, res) => {
     } catch (error) {
         res.send(error.message)
     }
-   
+
 })
 
 
@@ -64,10 +64,9 @@ router.delete('/:itemId', async (req, res) => {
         const userId = req.session.user._id
         const currentUser = await User.findById(userId)
         const pantry = currentUser.pantry.id(req.params.itemId)
-        console.log(pantry);
-        pantry.remove()
-       await currentUser.save()
-res.redirect(`/users/${userId}/foods`)
+        pantry.deleteOne();
+        await currentUser.save()
+        res.redirect(`/users/${userId}/foods`)
     } catch (error) {
         res.send(error.message)
     }
@@ -75,22 +74,18 @@ res.redirect(`/users/${userId}/foods`)
 
 router.put('/:itemId/edit', async (req, res) => {
     try {
-        
+
         const userId = req.session.user._id
         const currentUser = await User.findById(userId)
-        const itemIdx = req.params.itemId
-        // let pantryItem = currentUser.pantry[itemIdx]
-        await currentUser.pantry.splice(itemIdx, 1, `${req.body.name.value}`)
-        console.log(req.body.name);
-        await currentUser.save()
-        res.redirect(`/users/${userId}/foods/${itemIdx}`, {
-            pantryItem: pantryItem,
-            itemIdx: itemIdx,
-        })
+        const pantry = currentUser.pantry.id(req.params.itemId)
+        console.log(pantry);
+        pantry.name = req.body.name
 
+        await currentUser.save()
+res.redirect(`/users/${userId}/foods`)
     } catch (error) {
         res.send(error.message)
     }
-   
+
 })
 module.exports = router;
